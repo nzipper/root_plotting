@@ -1,10 +1,10 @@
 import numpy as np
-import ROOT
-import PlotBase
+from ROOT import gStyle, gPad, TLegend, TEfficiency
+from root_plotting.PlotBase import PlotBase
 
 class EfficiencyPlot(PlotBase):
     def __init__(self, init_params=None):
-        ROOT.gStyle.SetOptStat(0)
+        gStyle.SetOptStat(0)
         self.color1 = 'black'
         self.color2 = 'orange'
         self.title_string = ';p_{T} [GeV];Efficiency'
@@ -56,14 +56,14 @@ class EfficiencyPlot(PlotBase):
         h2_pass = h2.GetCopyPassedHisto()
         h2_tot = h2.GetCopyTotalHisto()
 
-        eff1 = ROOT.TEfficiency(h1_pass, h1_tot)
-        eff2 = ROOT.TEfficiency(h2_pass, h2_tot)
+        eff1 = TEfficiency(h1_pass, h1_tot)
+        eff2 = TEfficiency(h2_pass, h2_tot)
         self.format_entry(eff1, line_color=self.color1, title=h1_title)
         self.format_entry(eff2, line_color=self.color2, title=h2_title)
 
 
         # Legend object
-        leg = ROOT.TLegend(0, 0, .5, .5)
+        leg = TLegend(0, 0, .5, .5)
         entry1 = f'{eff1.GetTitle()}'
         entry2 = f'{eff2.GetTitle()}'
 
@@ -101,7 +101,7 @@ class EfficiencyPlot(PlotBase):
             self.format_legend(leg, pos=self.leg_pos, option='upper')
 
             ## Ratio Panel
-            ROOT.gPad.Update()
+            gPad.Update()
             p2.cd()
 
             # Efficiency ratio
@@ -112,7 +112,7 @@ class EfficiencyPlot(PlotBase):
 
             # TODO Ratio legend 
 
-            ROOT.gPad.Update()
+            gPad.Update()
             c.cd()
             c.Update()
 
@@ -129,7 +129,7 @@ class EfficiencyPlot(PlotBase):
             self.format_legend(leg, option='full', pos=self.leg_pos)
             leg.Draw()
 
-            ROOT.gPad.Update()
+            gPad.Update()
             c.Update()
         
         if save: c.SaveAs(save)

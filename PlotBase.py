@@ -1,5 +1,5 @@
 import numpy as np
-import ROOT
+from ROOT import gStyle, gPad, TLegend, TEfficiency, TCanvas, TLine, TPad
 
 class PlotBase():
     def format_entry(self, hist, title=None, marker_color='black', marker_style ='', marker_size='small', line_color='black', line_style='-', line_width='med'):
@@ -48,6 +48,7 @@ class PlotBase():
         }
         
         if title is not None: hist.SetTitle(title)
+        else: gStyle.SetOptTitle(0)
         hist.SetMarkerColor(color_map[marker_color])
         hist.SetMarkerStyle(markerstyle_map[marker_style])
         hist.SetMarkerSize(markersize_map[marker_size])
@@ -71,7 +72,7 @@ class PlotBase():
         titleoffset_map = {
             'hist' : {
                 'small' : {'x' : 1.5, 'y' : 1.5},
-                'med'   : {'x' : 1.5, 'y' : 1.5},
+                'med'   : {'x' : 1.6, 'y' : 1.8},
                 'large' : {'x' : 1.5, 'y' : 1.5},
             },
             'eff' : {
@@ -89,8 +90,8 @@ class PlotBase():
         if option=='full':
             padh = padw = padsize = 1
             hist.Draw()
-            ROOT.gPad.Update()
-            g = hist.GetPaintedGraph()
+            gPad.Update()
+            g = hist.GetPaintedGraph() if hist.InheritsFrom(TEfficiency.Class()) else hist
 
             # X- & Y-Axis
             if x_title is not None: g.GetXaxis().SetTitle(x_title)
@@ -111,8 +112,8 @@ class PlotBase():
         if option=='upper':
             padh = .7; padw = 1; padsize=.7
             hist.Draw()
-            ROOT.gPad.Update()
-            g = hist.GetPaintedGraph()
+            gPad.Update()
+            g = hist.GetPaintedGraph() if hist.InheritsFrom(TEfficiency.Class()) else hist
             labelsize = labelsize_map[text_size] / padsize
             titlesize = titlesize_map[text_size] / padsize
 
@@ -132,7 +133,7 @@ class PlotBase():
             g.GetYaxis().SetTitleSize(titlesize)
             g.GetYaxis().SetTitleOffset(titleoffset_map['eff'][text_size]['y'])
 
-            ROOT.gPad.Update()
+            gPad.Update()
 
         elif option=='lower':
             padh = .25; padw = 1; padsize=.25
@@ -158,11 +159,11 @@ class PlotBase():
             hist.GetYaxis().SetNdivisions(4)
 
             # Draw Ratio Line at 1
-            line = ROOT.TLine(0,0,1,1)
+            line = TLine(0,0,1,1)
             line.SetLineStyle(2)
             line.DrawLine(xrange[0],1,xrange[1],1) if xrange else line.DrawLine(0,1,hist.GetXaxis().GetXmax(),1)
 
-    def format_legend(self, leg, pos='lower_right', option='full'):
+    def format_legend(self, leg, pos='lower_right', option='full', scale=None):
         pos_map = {
             'full' : {
                 'upper_left'   : [.16,.75,.79,.88],
@@ -189,19 +190,25 @@ class PlotBase():
                 'lower_right'  : [.5,.52,.89,.73],
             },
         }
-        
-        leg.SetTextSize(.04) if option=='full' or option=='upper' else leg.SetTextSize(.1)
-
+    
+        # Resize legend
+        if scale is not None:
+            if 'right' in pos:
+                pos_map[option][pos][0] = pos_map[option][pos][2] - scale * (pos_map[option][pos][2] - pos_map[option][pos][0])
+            elif 'left' in pos:
+                pos_map[option][pos][2] = pos_map[option][pos][0] + scale * (pos_map[option][pos][2] - pos_map[option][pos][0])
+                
+        leg.SetTextSize(.04) if (option=='full' or option=='upper') else leg.SetTextSize(.1)
         leg.SetX1(pos_map[option][pos][0])
         leg.SetX2(pos_map[option][pos][2])
         leg.SetY1(pos_map[option][pos][1])
         leg.SetY2(pos_map[option][pos][3])
 
-        ROOT.gPad.Modified()
+        gPad.Modified()
         leg.DrawClone()
 
     def createCanvas(self, option='hist', size=(800,800)):
-        c = ROOT.TCanvas('c', 'c', size[0], size[1])
+        c = TCanvas('c', 'c', size[0], size[1])
 
         if option=='hist': 
             c.SetLeftMargin(0.15)
@@ -209,13 +216,13 @@ class PlotBase():
             return c
 
         elif option=='ratio':
-            pad1 = ROOT.TPad('pad1', 'pad1', 0, 0.3, 1., 1.)
+            pad1 = TPad('pad1', 'pad1', 0, 0.3, 1., 1.)
             pad1.SetBottomMargin(0) 
             pad1.SetLeftMargin(0.15)
             pad1.Draw()
 
             c.cd()  
-            pad2 = ROOT.TPad('pad2', 'pad2', 0, 0.05, 1, 0.3)
+            pad2 = TPad('pad2', 'pad2', 0, 0.05, 1, 0.3)
             pad2.SetTopMargin(0)  
             pad2.SetBottomMargin(0.5)
             pad2.SetLeftMargin(0.15)    
