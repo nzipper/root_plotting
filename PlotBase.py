@@ -1,5 +1,9 @@
+import os
 import numpy as np
-from ROOT import gStyle, gPad, TLegend, TEfficiency, TCanvas, TLine, TPad
+from ROOT import gROOT, gStyle, gPad, TLegend, TEfficiency, TCanvas, TLine, TPad
+
+gROOT.LoadMacro(os.path.join(os.getcwd(),'root_plotting/C_Files/tdrstyle.C'))
+gROOT.LoadMacro(os.path.join(os.getcwd(),'root_plotting/C_Files/CMS_lumi.C'))
 
 class PlotBase():
     def format_entry(self, hist, title=None, marker_color='black', marker_style ='', marker_size='small', line_color='black', line_style='-', line_width='med'):

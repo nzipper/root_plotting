@@ -1,7 +1,8 @@
 import numpy as np
-from ROOT import gStyle, gPad, TLegend
+from ROOT import gROOT, gStyle, gPad, TLegend
 from root_plotting.PlotBase import PlotBase
 from root_plotting.Utils import clone
+
 
 class HistPlot(PlotBase):
     def __init__(self, init_params=None):
@@ -43,6 +44,12 @@ class HistPlot(PlotBase):
         # Include ratio panel
         if ratio:
             c, p1, p2 = self.createCanvas(option='ratio', size=self.canvas_size)
+
+            # TODO Fix CMS Style
+            cms_style = False
+            if cms_style:
+                gROOT.ProcessLine("setTDRStyle();")
+                gROOT.ProcessLine("CMS_lumi(c);")
 
             ## Top Panel
             p1.cd()
