@@ -9,7 +9,7 @@ class HistPlot(PlotBase):
         gStyle.SetOptStat(0)
         self.color1 = 'black'
         self.color2 = 'orange'
-        self.title_string = ';p_{T} [GeV];Events'
+        self.title_string = None
         self.canvas_size = (800,800)
         self.xrange = None
         self.yrange = None
@@ -25,6 +25,7 @@ class HistPlot(PlotBase):
     
     def hist_ratio(self, h_1, h_2):
         r = clone(h_1)
+        # r.Divide(r, h_2, c1=1., c2=1., option='B')
         r.Divide(h_2)
         return r
 
@@ -56,7 +57,7 @@ class HistPlot(PlotBase):
 
             # Primary plot
             h1.Draw('E')
-            self.format_axes(h1, option='upper', xrange=self.xrange, yrange=self.yrange, text_size=self.text_size)
+            self.format_axes(h1, option='upper', xrange=self.xrange, yrange=self.yrange, text_size=self.text_size, title_string=self.title_string)
             h2.Draw('SAME E')
 
             # Legend
@@ -70,7 +71,7 @@ class HistPlot(PlotBase):
             # Hist ratio
             r = self.hist_ratio(h1, h2)
             r.Draw('E')
-            self.format_entry(r)
+            self.format_entry(r, title=self.title_string if self.title_string else None)
             self.format_axes(r, option='lower', xrange=self.xrange, yrange=self.rrange, text_size=self.text_size)
 
             # # TODO Ratio legend 

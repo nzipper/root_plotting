@@ -60,7 +60,7 @@ class PlotBase():
         hist.SetLineStyle(linestyle_map[line_style])
         hist.SetLineWidth(linewidth_map[line_width])
 
-    def format_axes(self, hist, option='full', xrange=None, yrange=None, text_size='small', x_title=None, y_title=None):
+    def format_axes(self, hist, option='full', xrange=None, yrange=None, text_size='small', title_string=None, x_title=None, y_title=None):
         titlesize_map = {
             'small' : .02,
             'med'   : .04,
@@ -98,9 +98,13 @@ class PlotBase():
             g = hist.GetPaintedGraph() if hist.InheritsFrom(TEfficiency.Class()) else hist
 
             # X- & Y-Axis
+            if title_string is not None: g.SetTitle(title_string)
             if x_title is not None: g.GetXaxis().SetTitle(x_title)
             if y_title is not None: g.GetYaxis().SetTitle(y_title)
             if xrange is not None: g.GetXaxis().SetRangeUser(xrange[0],xrange[1])
+            if yrange is not None:
+                g.SetMinimum(yrange[0])
+                g.SetMaximum(yrange[1])
             labelsize = labelsize_map[text_size] / padsize
             titlesize = titlesize_map[text_size] / padsize
 
@@ -216,6 +220,7 @@ class PlotBase():
 
         if option=='hist': 
             c.SetLeftMargin(0.15)
+            c.SetRightMargin(0.05)
             c.SetBottomMargin(0.15)
             return c
 
