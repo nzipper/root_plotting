@@ -3,12 +3,11 @@ from ROOT import gROOT, gStyle, gPad, TLegend
 from root_plotting.PlotBase import PlotBase
 from root_plotting.Utils import clone
 
-class HistPlot(PlotBase):
+class MultiHistPlot(PlotBase):
     def __init__(self, init_params=None):
         gStyle.SetOptStat(0)
-        self.color1 = 'black'
-        self.color2 = 'orange'
         self.title_string = None
+        self.colors = ['black','orange','blue','red','green','magenta','cyan','gray']
         self.canvas_size = (800,800)
         self.xrange = None
         self.yrange = None
@@ -27,19 +26,24 @@ class HistPlot(PlotBase):
         # r.Divide(r, h_2, c1=1., c2=1., option='B')
         r.Divide(h_2)
         return r
+    
+    def incl_yrange(self,hists):
+        return np.min([h.GetMinimum() for h in hists]), np.max([h.GetMaximum() for h in hists])*1.1
 
     # Core function for plot generation
-    def plotHists(self, h1, h2, ratio=False, h1_title=None, h2_title=None, show=False, save=False):
+    def plotHists(self, hists, ratio=False, titles=None, show=False, save=False):
+        self.yrange = self.incl_yrange(hists) if self.yrange is None else self.yrange
+
         # Construct plot objects
-        self.format_entry(h1, line_color=self.color1, title=None)
-        self.format_entry(h2, line_color=self.color2, title=None)
+        for i, h in enumerate(hists):
+            self.format_entry(h, line_color=self.colors[i%len(self.colors)], title=None)
 
         # Legend object
         leg = TLegend(0, 0, .5, .5)
-        entry1 = f'{h1.GetTitle()}' if h1_title is None else h1_title
-        entry2 = f'{h2.GetTitle()}' if h2_title is None else h2_title
-        leg.AddEntry(h1, entry1, 'le')
-        leg.AddEntry(h2, entry2, 'le')
+        if titles is not None: assert len(hists)==len(titles)
+        for i, h in enumerate(hists):
+            entry = f'{h.GetTitle()}' if titles is None else titles[i]
+            leg.AddEntry(h, entry, 'le')
 
         # Include ratio panel
         if ratio:
@@ -55,9 +59,10 @@ class HistPlot(PlotBase):
             p1.cd()
 
             # Primary plot
-            h1.Draw('E')
-            self.format_axes(h1, option='upper', xrange=self.xrange, yrange=self.yrange, text_size=self.text_size, title_string=self.title_string)
-            h2.Draw('SAME E')
+            hists[0].Draw('E')
+            self.format_axes(hists[0], option='upper', xrange=self.xrange, yrange=self.yrange, text_size=self.text_size, title_string=self.title_string)
+            for h in hists[1:]: 
+                h.Draw('SAME E')
 
             # Legend
             leg.Draw()
@@ -68,10 +73,17 @@ class HistPlot(PlotBase):
             p2.cd()
 
             # Hist ratio
-            r = self.hist_ratio(h1, h2)
+            r = self.hist_ratio(hists[0], hists[1])
             r.Draw('E')
             self.format_entry(r, title=self.title_string if self.title_string else None)
             self.format_axes(r, option='lower', xrange=self.xrange, yrange=self.rrange, text_size=self.text_size)
+
+            if len(hists)>2:
+                for h in hists[2:]:
+                    rnew = self.hist_ratio(hists[0], h)
+                    self.format_entry(rnew, line_color=self.colors[i%len(self.colors)], title=self.title_string if self.title_string else None)
+                    # self.format_entry(h, line_color=self.colors[i%len(self.colors)], title=None)
+                    rnew.Draw('SAME E')
 
             # # TODO Ratio legend 
 
@@ -89,9 +101,9 @@ class HistPlot(PlotBase):
             c = self.createCanvas(option='hist', size=self.canvas_size)
 
             # Primary plot
-            h1.Draw('E')
-            self.format_axes(h1, option='full', xrange=self.xrange, yrange=self.yrange, text_size=self.text_size)
-            h2.Draw('SAME E')
+            hists[0].Draw('E')
+            self.format_axes(hists[0], option='full', xrange=self.xrange, yrange=self.yrange, text_size=self.text_size)
+            for h in hists[1:]: h.Draw('SAME E')
 
             # Legend
             self.format_legend(leg, option='full', pos=self.leg_pos, scale=self.leg_scale, legtext_size=self.legtext_size)

@@ -93,7 +93,7 @@ class PlotBase():
 
         if option=='full':
             padh = padw = padsize = 1
-            hist.Draw()
+            hist.Draw('E')
             gPad.Update()
             g = hist.GetPaintedGraph() if hist.InheritsFrom(TEfficiency.Class()) else hist
 
@@ -119,7 +119,7 @@ class PlotBase():
 
         if option=='upper':
             padh = .7; padw = 1; padsize=.7
-            hist.Draw()
+            hist.Draw('E')
             gPad.Update()
             g = hist.GetPaintedGraph() if hist.InheritsFrom(TEfficiency.Class()) else hist
             labelsize = labelsize_map[text_size] / padsize
@@ -171,7 +171,7 @@ class PlotBase():
             line.SetLineStyle(2)
             line.DrawLine(xrange[0],1,xrange[1],1) if xrange else line.DrawLine(0,1,hist.GetXaxis().GetXmax(),1)
 
-    def format_legend(self, leg, pos='lower_right', option='full', scale=None):
+    def format_legend(self, leg, pos='lower_right', option='full', scale=None, legtext_size=None):
         pos_map = {
             'full' : {
                 'upper_left'   : [.16,.75,.79,.88],
@@ -198,6 +198,12 @@ class PlotBase():
                 'lower_right'  : [.5,.52,.89,.73],
             },
         }
+
+        legtext_map = {
+            'full' :  {'small' : .02, 'med' : .04, 'large' : .06},
+            'upper' : {'small' : .02, 'med' : .04, 'large' : .06},
+            'lower' : {'small' : .08, 'med' : .1,  'large' : .15},
+        }
     
         # Resize legend
         if scale is not None:
@@ -205,8 +211,10 @@ class PlotBase():
                 pos_map[option][pos][0] = pos_map[option][pos][2] - scale * (pos_map[option][pos][2] - pos_map[option][pos][0])
             elif 'left' in pos:
                 pos_map[option][pos][2] = pos_map[option][pos][0] + scale * (pos_map[option][pos][2] - pos_map[option][pos][0])
-                
-        leg.SetTextSize(.04) if (option=='full' or option=='upper') else leg.SetTextSize(.1)
+
+        if legtext_size: leg.SetTextSize(legtext_map[option][legtext_size])
+        else: leg.SetTextSize(.04) if (option=='full' or option=='upper') else leg.SetTextSize(.1)
+
         leg.SetX1(pos_map[option][pos][0])
         leg.SetX2(pos_map[option][pos][2])
         leg.SetY1(pos_map[option][pos][1])
