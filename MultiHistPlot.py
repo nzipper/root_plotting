@@ -7,14 +7,19 @@ class MultiHistPlot(PlotBase):
     def __init__(self, init_params=None):
         gStyle.SetOptStat(0)
         self.title_string = None
+        self.x_title = None
+        self.y_title = None
         self.colors = ['black','orange','blue','red','green','magenta','cyan','gray']
         self.canvas_size = (800,800)
+        self.marker_style = None
+        self.marker_size = 'small'
         self.xrange = None
         self.yrange = None
         self.rrange = (.5,2)
         self.text_size='med'
         self.leg_pos = 'upper_right'
         self.leg_scale = None
+        self.norm = None
         if init_params: self.set_params(init_params)
 
     def set_params(self, params):
@@ -32,18 +37,25 @@ class MultiHistPlot(PlotBase):
 
     # Core function for plot generation
     def plotHists(self, hists, ratio=False, titles=None, show=False, save=False):
-        self.yrange = self.incl_yrange(hists) if self.yrange is None else self.yrange
-
         # Construct plot objects
         for i, h in enumerate(hists):
-            self.format_entry(h, line_color=self.colors[i%len(self.colors)], title=None)
+            self.format_entry(h, 
+                    norm=self.norm, 
+                    title=None,
+                    line_color=self.colors[i%len(self.colors)], 
+                    marker_style= '' if self.marker_style is None else self.marker_style[i%len(self.marker_style)],
+                    marker_color= self.colors[i%len(self.colors)], 
+                    marker_size=self.marker_size,
+            )
+
+        self.yrange = self.incl_yrange(hists) if self.yrange is None else self.yrange
 
         # Legend object
         leg = TLegend(0, 0, .5, .5)
         if titles is not None: assert len(hists)==len(titles)
         for i, h in enumerate(hists):
             entry = f'{h.GetTitle()}' if titles is None else titles[i]
-            leg.AddEntry(h, entry, 'le')
+            leg.AddEntry(h, entry, 'le' if self.marker_style is None else 'pl')
 
         # Include ratio panel
         if ratio:
@@ -60,7 +72,15 @@ class MultiHistPlot(PlotBase):
 
             # Primary plot
             hists[0].Draw('E')
-            self.format_axes(hists[0], option='upper', xrange=self.xrange, yrange=self.yrange, text_size=self.text_size, title_string=self.title_string)
+            self.format_axes(hists[0], 
+                    option='upper', 
+                    xrange=self.xrange, 
+                    yrange=self.yrange, 
+                    text_size=self.text_size, 
+                    title_string=self.title_string,
+                    x_title=self.x_title,
+                    y_title=self.y_title,
+            )
             for h in hists[1:]: 
                 h.Draw('SAME E')
 
@@ -102,7 +122,15 @@ class MultiHistPlot(PlotBase):
 
             # Primary plot
             hists[0].Draw('E')
-            self.format_axes(hists[0], option='full', xrange=self.xrange, yrange=self.yrange, text_size=self.text_size)
+            self.format_axes(hists[0], 
+                    option='full', 
+                    xrange=self.xrange, 
+                    yrange=self.yrange, 
+                    text_size=self.text_size,
+                    x_title=self.x_title,
+                    y_title=self.y_title,
+            )
+
             for h in hists[1:]: h.Draw('SAME E')
 
             # Legend

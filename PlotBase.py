@@ -6,7 +6,10 @@ gROOT.LoadMacro(os.path.join(os.getcwd(),'root_plotting/C_Files/tdrstyle.C'))
 gROOT.LoadMacro(os.path.join(os.getcwd(),'root_plotting/C_Files/CMS_lumi.C'))
 
 class PlotBase():
-    def format_entry(self, hist, title=None, marker_color='black', marker_style ='', marker_size='small', line_color='black', line_style='-', line_width='med'):
+    def format_entry(self, hist, title=None, norm=None, marker_color='black', marker_style ='', marker_size='small', line_color='black', line_style='-', line_width='med'):
+        if norm is not None:
+            hist.Scale(norm/hist.GetEntries())
+        
         color_map = {
             'white'   : 0,
             'black'   : 1,
@@ -45,7 +48,7 @@ class PlotBase():
 
         markersize_map = {
             'small'    : 1,
-            'med'      : 2,
+            'med'      : 1.5,
             'large'    : 3,
             'x-large'  : 4,
             'xx-large' : 5,
@@ -53,10 +56,10 @@ class PlotBase():
         
         if title is not None: hist.SetTitle(title)
         else: gStyle.SetOptTitle(0)
-        hist.SetMarkerColor(color_map[marker_color])
+        hist.SetMarkerColor(color_map[marker_color] if isinstance(marker_color, str) else marker_color)
         hist.SetMarkerStyle(markerstyle_map[marker_style])
         hist.SetMarkerSize(markersize_map[marker_size])
-        hist.SetLineColor(color_map[line_color])
+        hist.SetLineColor(color_map[line_color] if isinstance(line_color, str) else line_color)
         hist.SetLineStyle(linestyle_map[line_style])
         hist.SetLineWidth(linewidth_map[line_width])
 
@@ -206,19 +209,23 @@ class PlotBase():
         }
     
         # Resize legend
-        if scale is not None:
-            if 'right' in pos:
-                pos_map[option][pos][0] = pos_map[option][pos][2] - scale * (pos_map[option][pos][2] - pos_map[option][pos][0])
-            elif 'left' in pos:
-                pos_map[option][pos][2] = pos_map[option][pos][0] + scale * (pos_map[option][pos][2] - pos_map[option][pos][0])
+        if isinstance(pos, tuple):
+            final_pos = pos
+        else:
+            if scale is not None:
+                if 'right' in pos:
+                    pos_map[option][pos][0] = pos_map[option][pos][2] - scale * (pos_map[option][pos][2] - pos_map[option][pos][0])
+                elif 'left' in pos:
+                    pos_map[option][pos][2] = pos_map[option][pos][0] + scale * (pos_map[option][pos][2] - pos_map[option][pos][0])
+            final_pos = (pos_map[option][pos][0], pos_map[option][pos][1], pos_map[option][pos][2], pos_map[option][pos][3])
 
         if legtext_size: leg.SetTextSize(legtext_map[option][legtext_size])
         else: leg.SetTextSize(.04) if (option=='full' or option=='upper') else leg.SetTextSize(.1)
 
-        leg.SetX1(pos_map[option][pos][0])
-        leg.SetX2(pos_map[option][pos][2])
-        leg.SetY1(pos_map[option][pos][1])
-        leg.SetY2(pos_map[option][pos][3])
+        leg.SetX1(final_pos[0])
+        leg.SetX2(final_pos[2])
+        leg.SetY1(final_pos[1])
+        leg.SetY2(final_pos[3])
 
         gPad.Modified()
         leg.DrawClone()
