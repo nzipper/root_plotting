@@ -18,6 +18,7 @@ class MultiHistPlot(PlotBase):
         self.rrange = (.5,2)
         self.text_size='med'
         self.leg_pos = 'upper_right'
+        self.legtext_size = 'med'
         self.leg_scale = None
         self.norm = None
         if init_params: self.set_params(init_params)
