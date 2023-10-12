@@ -16,6 +16,7 @@ class HistPlot(PlotBase):
         self.text_size='med'
         self.leg_pos = 'upper_right'
         self.leg_scale = None
+        self.legtext_size='med'
         if init_params: self.set_params(init_params)
 
     def set_params(self, params):
@@ -28,7 +29,35 @@ class HistPlot(PlotBase):
         r.Divide(h_2)
         return r
 
-    # Core function for plot generation
+    # Core functions for plot generation
+    def plotHist(self, h, h_title=None, add_legend=False, show=False, save=False):
+        # Construct plot objects
+        self.format_entry(h, line_color=self.color1, title=None)
+
+        # Legend object
+        if add_legend:
+            leg = TLegend(0, 0, .5, .5)
+            entry1 = f'{h.GetTitle()}' if h_title is None else h_title
+            leg.AddEntry(h, entry1, 'le')
+
+        c = self.createCanvas(option='hist', size=self.canvas_size)
+
+        # Primary plot
+        h.Draw('E')
+        self.format_axes(h, option='full', xrange=self.xrange, yrange=self.yrange, text_size=self.text_size)
+
+        # Legend
+        if add_legend:
+            self.format_legend(leg, option='full', pos=self.leg_pos, scale=self.leg_scale, legtext_size=self.legtext_size)
+            leg.Draw()
+
+        gPad.Update()
+        c.Update()
+    
+        if show: c.Draw()
+        if save: c.SaveAs(save)
+        return c
+
     def plotHists(self, h1, h2, ratio=False, h1_title=None, h2_title=None, show=False, save=False):
         # Construct plot objects
         self.format_entry(h1, line_color=self.color1, title=None)
